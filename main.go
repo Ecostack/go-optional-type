@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func fetchURLContent(url string) optional.Optional[string] {
+func fetchURLContent(url string) optional.Option[string] {
 	resp, err := http.Get(url)
 	if err != nil {
 		return optional.Empty[string]()

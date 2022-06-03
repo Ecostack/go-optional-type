@@ -2,64 +2,64 @@ package optional
 
 import "errors"
 
-type Optional[T any] interface {
+type Option[T any] interface {
 	Get() (*T, error)
 	IsPresent() bool
-	IfPresent(consumer func(val T)) Optional[T]
+	IfPresent(consumer func(val T)) Option[T]
 	OrElse(other T) T
 	OrElseGet(otherFunc func() T) T
-	Filter(predicate func(val T) bool) Optional[T]
+	Filter(predicate func(val T) bool) Option[T]
 }
 
-type optional[T any] struct {
-	val *T
+type option[T any] struct {
+	val *T // pointer to the type, so that NIL can represented
 }
 
-func (optional *optional[T]) Get() (*T, error) {
-	if optional.IsPresent() {
-		return optional.val, nil
+func (option *option[T]) Get() (*T, error) {
+	if option.IsPresent() {
+		return option.val, nil
 	}
 	return nil, errors.New("no value present")
 }
 
-func (optional *optional[T]) IsPresent() bool {
-	return optional.val != nil
+func (option *option[T]) IsPresent() bool {
+	return option.val != nil
 }
 
-func (optional *optional[T]) IfPresent(consumer func(val T)) Optional[T] {
-	val, _ := optional.Get()
+func (option *option[T]) IfPresent(consumer func(val T)) Option[T] {
+	val, _ := option.Get()
 	if val != nil {
 		consumer(*val)
 	}
-	return optional
+	return option
 }
 
-func (optional *optional[T]) OrElse(other T) T {
-	val, _ := optional.Get()
+func (option *option[T]) OrElse(other T) T {
+	val, _ := option.Get()
 	if val != nil {
 		return *val
 	}
 	return other
 }
 
-func (optional *optional[T]) OrElseGet(otherFunc func() T) T {
-	val, _ := optional.Get()
+func (option *option[T]) OrElseGet(otherFunc func() T) T {
+	val, _ := option.Get()
 	if val != nil {
 		return *val
 	}
 	return otherFunc()
 }
 
-func (optional *optional[T]) Filter(predicate func(val T) bool) Optional[T] {
-	val, _ := optional.Get()
+func (option *option[T]) Filter(predicate func(val T) bool) Option[T] {
+	val, _ := option.Get()
 	if val != nil && predicate(*val) {
 		return Of[T](*val)
 	}
 	return Empty[T]()
 }
 
-func Map[T any, S any](optional Optional[T], mapper func(val T) S) Optional[S] {
-	val, _ := optional.Get()
+func Map[T any, S any](option Option[T], mapper func(val T) S) Option[S] {
+	val, _ := option.Get()
 	if val != nil {
 		result := mapper(*val)
 		return Of[S](result)
@@ -67,10 +67,10 @@ func Map[T any, S any](optional Optional[T], mapper func(val T) S) Optional[S] {
 	return Empty[S]()
 }
 
-func Of[T any](val T) Optional[T] {
-	return &optional[T]{&val}
+func Of[T any](val T) Option[T] {
+	return &option[T]{&val}
 }
 
-func Empty[T any]() Optional[T] {
-	return &optional[T]{}
+func Empty[T any]() Option[T] {
+	return &option[T]{}
 }
